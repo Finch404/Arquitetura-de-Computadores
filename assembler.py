@@ -7,7 +7,7 @@ lines_bin = []
 names = []
 
 instructions = ['add', 'sub', 'mov', 'jz', 'inc', 'dec', 'zera',
-                'madd', 'msub', 'mmov', 'mjz', 'goto', 'halt', 'wb', 'ww']
+                'madd', 'msub', 'mmov', 'mjz', 'goto', 'getb', 'sl8', 'halt', 'wb', 'ww']
 
 # x, y, mem
 instruction_set = {'add' : [0x02, 0x14],
@@ -20,12 +20,16 @@ instruction_set = {'add' : [0x02, 0x14],
                    'madd': [0x2D, 0x35, 0x39],
                    'msub': [0x3D, 0x45, 0x49],
                    'mmov': [0x4D, 0x53, 0x57],
-                   'mjz' : 0x3D, # mem1 = word ; mem2 = byte 
+                   'mjz' : 0x5B, # mem1 = word ; mem2 = byte 
                    'goto': 0x09, # byte_only
+                   'getb': [0x5F, 0x64, 0x69, 0x6F],
+                   'sl8' : [0x79, 0x7A, 0x76], # 1op
                    'halt': 0xFF}
 
 byte_only_instructions = [instruction_set['jz'][0], instruction_set['jz'][1],
-                          instruction_set['goto']]
+                          instruction_set['goto'], instruction_set['getb'][0],
+                          instruction_set['getb'][1], instruction_set['getb'][2],
+                          instruction_set['getb'][3]]
 
 def is_instruction(str):
    global instructions
@@ -118,6 +122,16 @@ def encode_goto(ops):
          line_bin.append(ops[0])
    return line_bin
 
+def encode_getb(ops):
+   line_bin = []
+   if len(ops) > 1:
+      inst_bin = instruction_set['getb'][int(ops[1])]
+      if is_name(ops[0]):
+         print(f"encodando getb {ops[0]} {ops[1]} = {inst_bin} {ops[0]}")
+         line_bin.append(inst_bin)
+         line_bin.append(ops[0])
+         return line_bin
+
 def encode_halt():
    line_bin = []
    line_bin.append(instruction_set['halt'])
@@ -147,7 +161,7 @@ def encode_ww(ops):
 def encode_instruction(inst, ops):
    if inst in ['add', 'sub', 'mov', 'jz']:
       return encode_2ops(inst, ops)
-   elif inst in ['inc', 'dec', 'zera']:
+   elif inst in ['inc', 'dec', 'zera', 'sl8']:
       return encode_1op(inst, ops)
    elif inst in ['madd', 'msub', 'mmov']:
       return encode_mem_inst(inst, ops)
@@ -155,6 +169,8 @@ def encode_instruction(inst, ops):
       return encode_mjz(ops)
    elif inst == 'goto':
       return encode_goto(ops)
+   elif inst == 'getb':
+      return encode_getb(ops)
    elif inst == 'halt':
       return encode_halt()
    elif inst == 'wb':
@@ -163,7 +179,6 @@ def encode_instruction(inst, ops):
       return encode_ww(ops)
    else:
       return []
-   
    
 def line_to_bin_step1(line):
    line_bin = []
@@ -214,14 +229,13 @@ def resolve_names():
       for i in range(0, len(line)):
          if is_name(line[i]):
 
-            #if line[0] == 45: #mjz mem mem
-            #   if i == 1: line[i] = get_name_byte(line[i])//4 # word
-            #   elif i == 2: line[i] = get_name_byte(line[i]) # byte
-            if i == 1 and line[0] == 9: print(9 in byte_only_instructions) 
-            if line[i-1] in byte_only_instructions:
+            if line[0] == 0x3D: # mjz
+               if i == 1: line[i] = get_name_byte(line[i])//4 # word
+               elif i == 2: line[i] = get_name_byte(line[i]) # byte
+
+            elif line[i-1] in byte_only_instructions:
                line[i] = get_name_byte(line[i])
             else:
-               print(f"{line[i]} = {get_name_byte(line[i])}")
                line[i] = get_name_byte(line[i])//4
 
 for line in fsrc:
