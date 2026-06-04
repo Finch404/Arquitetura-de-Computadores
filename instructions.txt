@@ -1,17 +1,47 @@
 add reg mem
+adiciona o valor da memória ao registrador
+
 sub reg mem
+subtrai o valor da memória do registrador
+
 mov reg mem
+sobrescreve a memória com o valor do registrador
+
 jz reg mem
+pula para o endereço da memória se o valor do registrador for zero
 
 inc reg/mem
-dec reg/mem
-zera reg/mem
+incrementa o valor do registrador ou da memória em 1
 
-madd mem reg/mem
-msub mem reg/mem
-mmov mem reg/mem
-mjz mem mem
+dec reg/mem
+decremeta o valor do registrador ou da memória em 1
+
+zera reg/mem
+zera o valor do registrador ou da memória
+
+madd mem1 reg/mem2
+adiciona o valor do registrador ou da memória2 à memória1
+
+msub mem1 reg/mem2
+subtrai o valor do registrador ou da memória2 da memória1
+
+mmov mem1 reg/mem2
+sobrescreve a memória1 com valor do registrador ou da memória2
+
+mjz mem1 mem2
+pula para o endereço da memória2 se o valor da memória1 for zero
 
 goto mem
-halt
+pula para o endereço da memória
 
+getb mem n
+sobrescreve o registrador X com o n-ésimo byte (0 - 3) da palavra no endereço, usando de Y guardar PC original
+
+halt
+encerra o programa
+
+ww val
+escreve uma palavra com certo valor
+
+wb val
+escreve um byte com certo valor
