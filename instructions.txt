@@ -1,0 +1,17 @@
+add reg mem
+sub reg mem
+mov reg mem
+jz reg mem
+
+inc reg/mem
+dec reg/mem
+zera reg/mem
+
+madd mem reg/mem
+msub mem reg/mem
+mmov mem reg/mem
+mjz mem mem
+
+goto mem
+halt
+
