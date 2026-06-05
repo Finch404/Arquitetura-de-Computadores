@@ -229,11 +229,11 @@ def resolve_names():
       for i in range(0, len(line)):
          if is_name(line[i]):
 
-            if line[0] == 0x3D: # mjz
+            if line[0] == instruction_set['mjz']:
                if i == 1: line[i] = get_name_byte(line[i])//4 # word
                elif i == 2: line[i] = get_name_byte(line[i]) # byte
 
-            elif line[i-1] in byte_only_instructions:
+            elif line[0] in byte_only_instructions:
                line[i] = get_name_byte(line[i])
             else:
                line[i] = get_name_byte(line[i])//4
