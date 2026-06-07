@@ -37,6 +37,18 @@ pula para o endereço da memória
 getb mem n
 sobrescreve o registrador X com o n-ésimo byte (0 - 3) da palavra no endereço, usando de Y guardar PC original
 
+sr1 reg/mem
+move o valor do registrador ou da memória um bit para a direita
+
+sl1 reg/mem
+move o valor do registrador ou da memória um bit para a esquerda
+
+sl8 reg/mem
+move o valor do registrador ou da memória 8 bits para a esquerda
+
+sl7 mem
+move o valor do registrador ou da memória 7 bits para a esquerda
+
 halt
 encerra o programa
 
