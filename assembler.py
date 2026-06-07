@@ -7,7 +7,8 @@ lines_bin = []
 names = []
 
 instructions = ['add', 'sub', 'mov', 'jz', 'inc', 'dec', 'zera',
-                'madd', 'msub', 'mmov', 'mjz', 'goto', 'getb', 'sl8', 'halt', 'wb', 'ww']
+                'madd', 'msub', 'mmov', 'mjz', 'goto', 'getb',
+                'sr1', 'sl1', 'sl8', 'sl7' 'halt', 'wb', 'ww']
 
 # x, y, mem
 instruction_set = {'add' : [0x02, 0x14],
@@ -23,7 +24,10 @@ instruction_set = {'add' : [0x02, 0x14],
                    'mjz' : 0x5B, # mem1 = word ; mem2 = byte 
                    'goto': 0x09, # byte_only
                    'getb': [0x5F, 0x64, 0x69, 0x6F],
-                   'sl8' : [0x79, 0x7A, 0x76], # 1op
+                   'sr1' : [0x76, 0x77, 0x78], # 1op
+                   'sl1' : [0x7B, 0x7C, 0x7D], # 1op
+                   'sl8' : [0x80, 0x81, 0x82], # 1op
+                   'sl7' : 0x85, #só memória
                    'halt': 0xFF}
 
 byte_only_instructions = [instruction_set['jz'][0], instruction_set['jz'][1],
@@ -54,13 +58,10 @@ def encode_2ops(inst, ops):
    if len(ops) > 1:
       if is_name(ops[1]):
          inst_bin = 0
-
          if ops[0] == 'x': inst_bin = instruction_set[inst][0]
-         elif ops[0] == 'y': inst_bin = instruction_set[inst][1]
-         
+         elif ops[0] == 'y': inst_bin = instruction_set[inst][1]      
          line_bin.append(inst_bin)
          line_bin.append(ops[1])
-         print(f"encodando {inst} {ops[0]} {ops[1]} = {inst_bin} {ops[1]}")   
 
    return line_bin
    
@@ -71,13 +72,10 @@ def encode_1op(inst, ops):
          inst_bin = 0
          if ops[0] == 'x': inst_bin = instruction_set[inst][0]
          elif ops[0] == 'y': inst_bin = instruction_set[inst][1]
-            
-         print(f"encodando {inst} {ops[0]} = {inst_bin}")
          line_bin.append(inst_bin)
 
       elif is_name(ops[0]): #se op é endereço de memória
-         inst_bin = instruction_set[inst][2]
-         print(f"encodando {inst} {ops[0]} = {inst_bin} {ops[0]}")      
+         inst_bin = instruction_set[inst][2]   
          line_bin.append(inst_bin)
          line_bin.append(ops[0])
    return line_bin
@@ -89,7 +87,6 @@ def encode_mem_inst(inst, ops):
       if is_name(ops[0]):
          if is_name(ops[1]):
             inst_bin = instruction_set[inst][0]
-            print(f"encodando {inst} {ops[0]} {ops[1]} = {inst_bin} {ops[0]} {ops[1]}")
             line_bin.append(instruction_set[inst][0])
             line_bin.append(ops[0]) # word
             line_bin.append(ops[1]) # word
@@ -97,8 +94,6 @@ def encode_mem_inst(inst, ops):
          elif ops[1] in ['x', 'y']:
             if ops[1] == 'x': inst_bin = instruction_set[inst][1]
             elif ops[1] == 'y': inst_bin = instruction_set[inst][2]
-
-            print(f"encodando {inst} {ops[0]} {ops[1]} = {inst_bin} {ops[0]}")
             line_bin.append(inst_bin)
             line_bin.append(ops[0]) # word
    return line_bin
@@ -107,7 +102,6 @@ def encode_mjz(ops):
    line_bin = []
    if len(ops) > 1:
       if is_name(ops[0]) and is_name(ops[1]):
-         print(f"encodando mjz {ops[0]} {ops[1]} = {instruction_set['mjz']} {ops[0]} {ops[1]}")
          line_bin.append(instruction_set['mjz'])
          line_bin.append(ops[0]) # word
          line_bin.append(ops[1]) # byte
@@ -117,7 +111,6 @@ def encode_goto(ops):
    line_bin = []
    if len(ops) > 0:
       if is_name(ops[0]):
-         print(f"encodando goto {ops[0]} = {instruction_set['goto']} {ops[0]}")
          line_bin.append(instruction_set['goto'])
          line_bin.append(ops[0])
    return line_bin
@@ -127,15 +120,21 @@ def encode_getb(ops):
    if len(ops) > 1:
       inst_bin = instruction_set['getb'][int(ops[1])]
       if is_name(ops[0]):
-         print(f"encodando getb {ops[0]} {ops[1]} = {inst_bin} {ops[0]}")
          line_bin.append(inst_bin)
          line_bin.append(ops[0])
-         return line_bin
+   return line_bin
+
+def encode_sl7(ops):
+   line_bin = []
+   if len(ops) > 0:
+      if is_name(ops[0]):
+         line_bin.append(instruction_set['sl7'])
+         line_bin.append(ops[0])
+   return line_bin
 
 def encode_halt():
    line_bin = []
    line_bin.append(instruction_set['halt'])
-   print("halt")
    return line_bin
    
 def encode_wb(ops):
@@ -161,7 +160,7 @@ def encode_ww(ops):
 def encode_instruction(inst, ops):
    if inst in ['add', 'sub', 'mov', 'jz']:
       return encode_2ops(inst, ops)
-   elif inst in ['inc', 'dec', 'zera', 'sl8']:
+   elif inst in ['inc', 'dec', 'zera', 'sr1', 'sl1', 'sl8']:
       return encode_1op(inst, ops)
    elif inst in ['madd', 'msub', 'mmov']:
       return encode_mem_inst(inst, ops)
@@ -171,6 +170,8 @@ def encode_instruction(inst, ops):
       return encode_goto(ops)
    elif inst == 'getb':
       return encode_getb(ops)
+   elif inst == 'sl7':
+      return encode_sl7(ops)
    elif inst == 'halt':
       return encode_halt()
    elif inst == 'wb':
