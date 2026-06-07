@@ -272,7 +272,7 @@ firmware[93] = 0b001011110_001_00010100_000000_000_000
               #BUS_C = MDR; IF BUS_C == 0 GOTO 348 ELSE GOTO 94
 firmware[94] = 0b000000000_000_00110101_001000_000_001
               #PC = PC + 1; GOTO 0
-firmware[348] = 0b000001001_000_00000000_000000_000_000
+firmware[350] = 0b000001001_000_00000000_000000_000_000
                #GOTO 9
 
 #95 - getb: X = memory[address] byte 0 com PC retornando para Y
@@ -329,21 +329,63 @@ firmware[116] = 0b001110101_000_00010100_000100_000_010
 firmware[117] = 0b000000000_000_00010100_001000_000_100
                #PC = Y; GOTO 0
 
-#118 - sl8: memory[address] = memory[address] << 8
-firmware[118] = 0b001110111_000_00110101_001000_001_001
-               #PC = PC + 1; MBR = memory.read_byte(PC); GOTO 119
-firmware[119] = 0b001111000_000_00010100_100000_010_010
-               #MAR = MBR; MDR = memory.read_word(MAR); GOTO 120
-firmware[120] = 0b000000000_000_11010100_010000_100_000
-               #MDR = MDR << 8; memory.write_word(MAR); GOTO 0
+#118 - sr1: X = X >> 1
+firmware[118] = 0b000000000_000_10010100_000100_000_011
+               #X = X >> 1
 
-#121 - sl8: X = X << 8
-firmware[121] = 0b000000000_000_11010100_000100_000_011
+#119 - sr1: Y = Y >> 1
+firmware[119] = 0b000000000_000_10010100_000100_000_100
+               #Y = Y >> 1
+
+#120 - sr1: memory[address] = memory[address] >> 1
+firmware[120] = 0b001111001_000_00110101_001000_001_001
+               #PC = PC + 1; MBR = memory.read_byte(PC); GOTO 119
+firmware[121] = 0b001111010_000_00010100_100000_010_010
+               #MAR = MBR; MDR = memory.read_word(MAR); GOTO 120
+firmware[122] = 0b000000000_000_10010100_010000_100_000
+               #MDR = MDR >> 1; memory.write_word(MAR); GOTO 0
+
+#123 - sl1: X = X << 1
+firmware[123] = 0b000000000_000_01010100_000100_000_011
+               #X = X << 1
+
+#124 - sl1: Y = Y << 1
+firmware[124] = 0b000000000_000_01010100_000010_000_100
+               #Y = Y << 1
+
+#125 - sl1: memory[address] = memory[address] >> 1
+firmware[125] = 0b001111110_000_00110101_001000_001_001
+               #PC = PC + 1; MBR = memory.read_byte(PC); GOTO 124
+firmware[126] = 0b001111111_000_00010100_100000_010_010
+               #MAR = MBR; MDR = memory.read_word(MAR); GOTO 125
+firmware[127] = 0b000000000_000_10010100_010000_100_000
+               #MDR = MDR << 1; memory.write_word(MAR); GOTO 0
+
+#128 - sl8: X = X << 8
+firmware[128] = 0b000000000_000_11010100_000100_000_011
                #X = X << 8
 
-#122 - sl8: Y = Y << 8
-firmware[122] = 0b000000000_000_11010100_000010_000_100
+#129 - sl8: Y = Y << 8
+firmware[129] = 0b000000000_000_11010100_000010_000_100
                #Y = Y << 8
+
+#130 - sl8: memory[address] = memory[address] << 8
+firmware[130] = 0b010000011_000_00110101_001000_001_001
+               #PC = PC + 1; MBR = memory.read_byte(PC); GOTO 131
+firmware[131] = 0b010000100_000_00010100_100000_010_010
+               #MAR = MBR; MDR = memory.read_word(MAR); GOTO 132
+firmware[132] = 0b000000000_000_11010100_010000_100_000
+               #MDR = MDR << 8; memory.write_word(MAR); GOTO 0
+
+#133 - sl7: memory[address] = memory[address] << 7
+firmware[133] = 0b010000110_000_00110101_001000_001_001
+               #PC = PC + 1; MBR = memory.read_byte(PC); GOTO 134
+firmware[134] = 0b010000111_000_00010100_100000_010_010
+               #MAR = MBR; MDR = memory.read_word(MAR); GOTO 135
+firmware[135] = 0b010001000_000_11010100_010000_000_000
+               #MDR = MDR << 8; GOTO 136
+firmware[136] = 0b000000000_000_10010100_010000_100_000
+               #MDR = MDR >> 1; memory.write_word(MAR); GOTO 0 
 
 #255: HALT
 firmware[255] = 0b00000000000000000000000000000000
