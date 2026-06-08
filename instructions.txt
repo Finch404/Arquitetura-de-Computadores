@@ -49,6 +49,12 @@ move o valor do registrador ou da memória 8 bits para a esquerda
 sl7 mem
 move o valor do registrador ou da memória 7 bits para a esquerda
 
+jeq mem1 mem2 mem3
+pule para o endereço mem3 se o valor de mem1 for igual o de mem2
+
+max mem1 mem2 mem3
+mem3 recebe 0 se o valor de mem1 for maior que o de mem2, mas recebe 1 se o valor de mem2 for maaior que o de mem1
+
 halt
 encerra o programa
 
