@@ -269,7 +269,7 @@ firmware[91] = 0b001011100_000_00110101_001000_001_001
 firmware[92] = 0b001011101_000_00010100_100000_010_010
               #MAR = MBR; MDR = memory.read_word(MAR); GOTO 93
 firmware[93] = 0b001011110_001_00010100_000000_000_000
-              #BUS_C = MDR; IF BUS_C == 0 GOTO 348 ELSE GOTO 94
+              #BUS_C = MDR; IF BUS_C == 0 GOTO 350 ELSE GOTO 94
 firmware[94] = 0b000000000_000_00110101_001000_000_001
               #PC = PC + 1; GOTO 0
 firmware[350] = 0b000001001_000_00000000_000000_000_000
@@ -385,7 +385,45 @@ firmware[134] = 0b010000111_000_00010100_100000_010_010
 firmware[135] = 0b010001000_000_11010100_010000_000_000
                #MDR = MDR << 8; GOTO 136
 firmware[136] = 0b000000000_000_10010100_010000_100_000
-               #MDR = MDR >> 1; memory.write_word(MAR); GOTO 0 
+               #MDR = MDR >> 1; memory.write_word(MAR); GOTO 0
+
+#137 - jeq: IF memory[address1] == memory[address2] GOTO address3
+firmware[137] = 0b010001010_000_00110101_001000_001_001
+               #PC = PC + 1; MBR = memory.read_byte(PC); GOTO 138
+firmware[138] = 0b010001011_000_00010100_100000_010_010
+               #MAR = MBR; MDR = memory.read_word(MAR); GOTO 139
+firmware[139] = 0b010001100_000_00010100_000001_000_000
+               #H = MDR; GOTO 140
+firmware[140] = 0b010001101_000_00110101_001000_001_001
+               #PC = PC + 1; MBR = memory.read_byte(PC) ; GOTO 141
+firmware[141] = 0b010001110_000_00010100_100000_010_010              
+               #MAR = MBR; MDR = memory.read_word(MAR); GOTO 142
+firmware[142] = 0b010001111_001_00001111_000001_000_000
+               #H = MDR ^ H; GOTO 143
+firmware[143] = 0b000000000_000_00110101_001000_000_001
+               #PC = PC + 1; GOTO 0
+firmware[399] = 0b000001001_000_00000000_000000_000_000
+               #GOTO 9
+
+#144 - max: IF memory[address1] > memory[address2]: memomry[address3] = 0 ELSE memory[address3] = 1
+firmware[144] = 0b010010001_000_00110101_001000_001_001
+               #PC = PC + 1; MBR = memory.read_byte(PC); GOTO 145
+firmware[145] = 0b010010010_000_00010100_100000_010_010
+               #MAR = MBR; MDR = memory.read_word(MAR); GOTO 146
+firmware[146] = 0b010010011_000_00010100_000001_000_000
+               #H = MDR; GOTO 147
+firmware[147] = 0b010010100_000_00110101_001000_001_001
+               #PC = PC + 1; MBR = memory.read_byte(PC) ; GOTO 148
+firmware[148] = 0b010010101_000_00010100_100000_010_010              
+               #MAR = MBR; MDR = memory.read_word(MAR); GOTO 149
+firmware[149] = 0b010010110_001_00001111_000001_000_000
+               #H = MDR ^ H; GOTO 150
+firmware[150] = 0b010010111_000_00001100_010000_000_000
+               #MDR = MDR & H; GOTO 151
+firmware[151] = 0b010011000_000_00110101_001000_001_001
+               #PC = PC + 1; MBR = memory.read_byte(PC); GOTO 152
+firmware[152] = 0b000000000_000_00010100_100000_100_010
+               #MAR = MBR; memory.write_word(MAR); GOTO 0
 
 #255: HALT
 firmware[255] = 0b00000000000000000000000000000000
@@ -469,6 +507,8 @@ def alu(control_bits):
       o = 1
    elif control_bits == 0b110010:
       o = -1
+   elif control_bits == 0b001111:
+    o = a ^ b
    
    if o == 0:
       N = 0
@@ -519,7 +559,7 @@ def step():
    global MIR, MPC
    
    MIR = firmware[MPC]
-   
+
    if MIR == 0:
       return False
    
@@ -528,6 +568,6 @@ def step():
    write_regs( (MIR & 0b00000000000000000000111111000000) >> 6)
    memory_io( (MIR & 0b00000000000000000000000000111000) >> 3 )
    next_instruction(MIR >> 23, (MIR & 0b00000000011100000000000000000000) >> 20)
-   
+
    return True
    
