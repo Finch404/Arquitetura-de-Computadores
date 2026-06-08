@@ -8,7 +8,7 @@ names = []
 
 instructions = ['add', 'sub', 'mov', 'jz', 'inc', 'dec', 'zera',
                 'madd', 'msub', 'mmov', 'mjz', 'goto', 'getb',
-                'sr1', 'sl1', 'sl8', 'sl7' 'halt', 'wb', 'ww']
+                'sr1', 'sl1', 'sl8', 'sl7', 'jeq', 'max', 'halt', 'wb', 'ww']
 
 # x, y, mem
 instruction_set = {'add' : [0x02, 0x14],
@@ -27,7 +27,9 @@ instruction_set = {'add' : [0x02, 0x14],
                    'sr1' : [0x76, 0x77, 0x78], # 1op
                    'sl1' : [0x7B, 0x7C, 0x7D], # 1op
                    'sl8' : [0x80, 0x81, 0x82], # 1op
-                   'sl7' : 0x85, #só memória
+                   'sl7' : 0x85, # mem_only
+                   'jeq' : 0x89, # mem1 = word ; mem2 = word ; mem3 = byte
+                   'max' : 0x90, # word_only
                    'halt': 0xFF}
 
 byte_only_instructions = [instruction_set['jz'][0], instruction_set['jz'][1],
@@ -132,6 +134,26 @@ def encode_sl7(ops):
          line_bin.append(ops[0])
    return line_bin
 
+def encode_jeq(ops):
+   line_bin = []
+   if len(ops) > 2:
+      if is_name(ops[0]) and is_name(ops[1]) and is_name(ops[2]):
+         line_bin.append(instruction_set['jeq'])
+         line_bin.append(ops[0]) # word
+         line_bin.append(ops[1]) # word
+         line_bin.append(ops[2]) # byte
+   return line_bin
+
+def encode_max(ops):
+   line_bin = []
+   if len(ops) > 2:
+      if is_name(ops[0]) and is_name(ops[1]) and is_name(ops[2]):
+         line_bin.append(instruction_set['max'])
+         line_bin.append(ops[0]) # word
+         line_bin.append(ops[1]) # word
+         line_bin.append(ops[2]) # word
+   return line_bin
+
 def encode_halt():
    line_bin = []
    line_bin.append(instruction_set['halt'])
@@ -172,6 +194,10 @@ def encode_instruction(inst, ops):
       return encode_getb(ops)
    elif inst == 'sl7':
       return encode_sl7(ops)
+   elif inst == 'jeq':
+      return encode_jeq(ops)
+   elif inst == 'max':
+      return encode_max(ops)
    elif inst == 'halt':
       return encode_halt()
    elif inst == 'wb':
@@ -233,6 +259,13 @@ def resolve_names():
             if line[0] == instruction_set['mjz']:
                if i == 1: line[i] = get_name_byte(line[i])//4 # word
                elif i == 2: line[i] = get_name_byte(line[i]) # byte
+            
+            elif line[0] == instruction_set['jeq']:
+               if i == 1 or i == 2: line[i] = get_name_byte(line[i])//4 # word
+               elif i == 3: line[i] = get_name_byte(line[i]) # byte
+
+            elif line[0] == instruction_set['max']:
+               line[i] = get_name_byte(line[i])//4 # word
 
             elif line[0] in byte_only_instructions:
                line[i] = get_name_byte(line[i])
